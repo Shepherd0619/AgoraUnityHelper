@@ -255,6 +255,7 @@ public class VideoChatHelper : MonoBehaviour
             //在这里销毁用户视频画面
             foreach(KeyValuePair<uint, VideoChatTexture> pair in VideoChatHelper.Instance.RealtimeVideos)
             {
+                VideoChatHelper.Instance.OnVideoTextureDestroyed.Invoke(pair.Key);
                 Destroy(pair.Value.gameObject);
 
             }
