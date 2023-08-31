@@ -12,6 +12,7 @@ using Agora_RTC_Plugin.API_Example;
 using UnityEngine.UI;
 using System;
 using UnityEditor.MemoryProfiler;
+using static UnityEditor.Progress;
 
 public class VideoChatHelper : MonoBehaviour
 {
@@ -126,6 +127,7 @@ public class VideoChatHelper : MonoBehaviour
         RtcEngine.InitEventHandler(handler);
 
         SetCameraDevice();
+        SetAudioDevice();
 
         RtcEngine.EnableAudio();
         RtcEngine.EnableVideo();
@@ -171,6 +173,10 @@ public class VideoChatHelper : MonoBehaviour
         txt.EnableVideoFrameWithIdentity();
         VideoChatHelper.Instance.RealtimeVideos.Add(0, txt);
         VideoChatHelper.Instance.OnVideoTextureCreated.Invoke(0);
+        var options = new ChannelMediaOptions();
+        options.publishMicrophoneTrack.SetValue(true);
+        options.publishCameraTrack.SetValue(true);
+        var nRet = RtcEngine.UpdateChannelMediaOptions(options);
     }
 
     /// <summary>
@@ -178,6 +184,10 @@ public class VideoChatHelper : MonoBehaviour
     /// </summary>
     public void RTC_LeaveChannel()
     {
+        var options = new ChannelMediaOptions();
+        options.publishMicrophoneTrack.SetValue(false);
+        options.publishCameraTrack.SetValue(false);
+        var nRet = RtcEngine.UpdateChannelMediaOptions(options);
         RtcEngine.LeaveChannel();
     }
 
@@ -203,6 +213,13 @@ public class VideoChatHelper : MonoBehaviour
         IVideoDeviceManager mgr = RtcEngine.GetVideoDeviceManager();
         mgr.SetDevice(mgr.EnumerateVideoDevices()[0].deviceId);
         Debug.Log(mgr.EnumerateVideoDevices()[0].deviceName);
+    }
+
+    public void SetAudioDevice()
+    {
+        IAudioDeviceManager mgr = RtcEngine.GetAudioDeviceManager();
+        mgr.SetPlaybackDevice(mgr.EnumeratePlaybackDevices()[0].deviceId);
+        Debug.Log(mgr.EnumeratePlaybackDevices()[0].deviceName);
     }
 
     #region ÊÂ¼þ
