@@ -11,6 +11,7 @@ using Agora_RTC_Plugin.API_Example.Examples.Basic.JoinChannelVideo;
 using Agora_RTC_Plugin.API_Example;
 using UnityEngine.UI;
 using System;
+using UnityEditor.MemoryProfiler;
 
 public class VideoChatHelper : MonoBehaviour
 {
@@ -30,7 +31,7 @@ public class VideoChatHelper : MonoBehaviour
 
     private IRtcEngine RtcEngine;
 
-    private Dictionary<uint, VideoChatTexture> RealtimeVideos = new Dictionary<uint, VideoChatTexture>();
+    public Dictionary<uint, VideoChatTexture> RealtimeVideos = new Dictionary<uint, VideoChatTexture>();
 
     public static VideoChatHelper Instance;
 
@@ -124,6 +125,18 @@ public class VideoChatHelper : MonoBehaviour
 
         RtcEngine.InitEventHandler(handler);
 
+        SetCameraDevice();
+
+        RtcEngine.EnableAudio();
+        RtcEngine.EnableVideo();
+        VideoEncoderConfiguration config = new VideoEncoderConfiguration();
+        config.dimensions = new VideoDimensions(300, 300);
+        config.frameRate = 15;
+        config.bitrate = 0;
+        RtcEngine.SetVideoEncoderConfiguration(config);
+        RtcEngine.SetChannelProfile(CHANNEL_PROFILE_TYPE.CHANNEL_PROFILE_COMMUNICATION);
+        RtcEngine.SetClientRole(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
+
         Debug.Log("[VideoChatHelper]引擎初始化完成！");
     }
 
@@ -133,6 +146,14 @@ public class VideoChatHelper : MonoBehaviour
     public void RTC_JoinChannel()
     {
         RtcEngine.JoinChannel(token, channelName);
+        //在这里加新的视频画面
+        GameObject go = new GameObject("VideoChatTexture_uid_" + 0);
+        go.transform.parent = VideoChatHelper.Instance.transform;
+        VideoChatTexture txt = go.AddComponent<VideoChatTexture>();
+        txt.SetVideoStreamIdentity(0, VideoChatHelper.Instance.channelName, VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA_PRIMARY, VIDEO_OBSERVER_FRAME_TYPE.FRAME_TYPE_RGBA);
+        txt.EnableVideoFrameWithIdentity();
+        VideoChatHelper.Instance.RealtimeVideos.Add(0, txt);
+        VideoChatHelper.Instance.OnVideoTextureCreated.Invoke(0);
     }
 
     /// <summary>
@@ -142,6 +163,22 @@ public class VideoChatHelper : MonoBehaviour
     public void RTC_JoinChannel(string name)
     {
         RtcEngine.JoinChannel(token, name);
+        //在这里加新的视频画面
+        GameObject go = new GameObject("VideoChatTexture_uid_" + 0);
+        go.transform.parent = VideoChatHelper.Instance.transform;
+        VideoChatTexture txt = go.AddComponent<VideoChatTexture>();
+        txt.SetVideoStreamIdentity(0, VideoChatHelper.Instance.channelName, VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA_PRIMARY, VIDEO_OBSERVER_FRAME_TYPE.FRAME_TYPE_RGBA);
+        txt.EnableVideoFrameWithIdentity();
+        VideoChatHelper.Instance.RealtimeVideos.Add(0, txt);
+        VideoChatHelper.Instance.OnVideoTextureCreated.Invoke(0);
+    }
+
+    /// <summary>
+    /// 退出频道
+    /// </summary>
+    public void RTC_LeaveChannel()
+    {
+        RtcEngine.LeaveChannel();
     }
 
     /// <summary>
@@ -161,43 +198,15 @@ public class VideoChatHelper : MonoBehaviour
         RTC_Destroy();
     }
 
-    #region -- Video Render UI Logic ---
-    /*
-    internal static void MakeVideoView(uint uid, string channelId = "")
+    public void SetCameraDevice()
     {
-        var go = GameObject.Find(uid.ToString());
-        if (!ReferenceEquals(go, null))
-        {
-            return; // reuse
-        }
-
-        // create a GameObject and assign to this new user
-        var videoSurface = MakeImageSurface(uid.ToString());
-        if (ReferenceEquals(videoSurface, null)) return;
-        // configure videoSurface
-        if (uid == 0)
-        {
-            videoSurface.SetForUser(uid, channelId);
-        }
-        else
-        {
-            videoSurface.SetForUser(uid, channelId, VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE);
-        }
-
-        videoSurface.OnTextureSizeModify += (int width, int height) =>
-        {
-            float scale = (float)height / (float)width;
-            videoSurface.transform.localScale = new Vector3(-5, 5 * scale, 1);
-            Debug.Log("OnTextureSizeModify: " + width + "  " + height);
-        };
-
-        videoSurface.SetEnable(true);
+        IVideoDeviceManager mgr = RtcEngine.GetVideoDeviceManager();
+        mgr.SetDevice(mgr.EnumerateVideoDevices()[0].deviceId);
+        Debug.Log(mgr.EnumerateVideoDevices()[0].deviceName);
     }
-    */
-#endregion
 
-#region 事件
-internal class UserEventHandler : IRtcEngineEventHandler
+    #region 事件
+    internal class UserEventHandler : IRtcEngineEventHandler
     {
         private readonly VideoChatHelper _videoSample;
 
@@ -222,14 +231,6 @@ internal class UserEventHandler : IRtcEngineEventHandler
             Debug.Log(
                 string.Format("OnJoinChannelSuccess channelName: {0}, uid: {1}, elapsed: {2}",
                                 connection.channelId, connection.localUid, elapsed));
-
-            //在这里加新的视频画面
-            GameObject go = new GameObject("VideoChatTexture_uid_" + connection.localUid);
-            go.transform.parent = VideoChatHelper.Instance.transform;
-            VideoChatTexture txt = go.AddComponent<VideoChatTexture>();
-            txt.SetVideoStreamIdentity(connection.localUid, VideoChatHelper.Instance.channelName, VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA_PRIMARY, VIDEO_OBSERVER_FRAME_TYPE.FRAME_TYPE_RGBA);
-            VideoChatHelper.Instance.RealtimeVideos.Add(connection.localUid, txt);
-            VideoChatHelper.Instance.OnVideoTextureCreated.Invoke(connection.localUid);
         }
 
         public override void OnRejoinChannelSuccess(RtcConnection connection, int elapsed)
@@ -240,6 +241,13 @@ internal class UserEventHandler : IRtcEngineEventHandler
         public override void OnLeaveChannel(RtcConnection connection, RtcStats stats)
         {
             Debug.Log("[VideoChatHelper]已退出频道！");
+            //在这里销毁用户视频画面
+            foreach(KeyValuePair<uint, VideoChatTexture> pair in VideoChatHelper.Instance.RealtimeVideos)
+            {
+                Destroy(pair.Value.gameObject);
+
+            }
+            VideoChatHelper.Instance.RealtimeVideos.Clear();
         }
 
         public override void OnClientRoleChanged(RtcConnection connection, CLIENT_ROLE_TYPE oldRole, CLIENT_ROLE_TYPE newRole, ClientRoleOptions newRoleOptions)
@@ -254,7 +262,8 @@ internal class UserEventHandler : IRtcEngineEventHandler
             GameObject go = new GameObject("VideoChatTexture_uid_" + uid);
             go.transform.parent = VideoChatHelper.Instance.transform;
             VideoChatTexture txt = go.AddComponent<VideoChatTexture>();
-            txt.SetVideoStreamIdentity(uid, VideoChatHelper.Instance.channelName, VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA_PRIMARY, VIDEO_OBSERVER_FRAME_TYPE.FRAME_TYPE_RGBA);
+            txt.SetVideoStreamIdentity(uid, VideoChatHelper.Instance.channelName, VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE, VIDEO_OBSERVER_FRAME_TYPE.FRAME_TYPE_RGBA);
+            txt.EnableVideoFrameWithIdentity();
             VideoChatHelper.Instance.RealtimeVideos.Add(uid, txt);
             VideoChatHelper.Instance.OnVideoTextureCreated.Invoke(uid);
         }
