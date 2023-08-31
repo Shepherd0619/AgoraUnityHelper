@@ -80,6 +80,9 @@ public class VideoChatTexture : MonoBehaviour
         DestroyTexture();
     }
 
+    /// <summary>
+    /// 初始化Texture
+    /// </summary>
     internal virtual void InitTexture()
     {
         try
@@ -117,6 +120,9 @@ public class VideoChatTexture : MonoBehaviour
         return _canAttach;
     }
 
+    /// <summary>
+    /// 激活本Texture的刷新
+    /// </summary>
     internal void EnableVideoFrameWithIdentity()
     {
         var engine = RtcEngineImpl.Get();
@@ -189,6 +195,13 @@ public class VideoChatTexture : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// 设置Texture的标识符
+    /// </summary>
+    /// <param name="uid"></param>
+    /// <param name="channelId"></param>
+    /// <param name="source_type"></param>
+    /// <param name="frameType"></param>
     internal void SetVideoStreamIdentity(uint uid = 0, string channelId = "",
         VIDEO_SOURCE_TYPE source_type = VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA_PRIMARY,
         VIDEO_OBSERVER_FRAME_TYPE frameType = VIDEO_OBSERVER_FRAME_TYPE.FRAME_TYPE_RGBA)

@@ -191,8 +191,8 @@ public class VideoChatHelper : MonoBehaviour
     public void RTC_Destroy()
     {
         if (RtcEngine == null) return;
-        RtcEngine.InitEventHandler(null);
         RtcEngine.LeaveChannel();
+        RtcEngine.InitEventHandler(null);
         RtcEngine.Dispose();
         Debug.Log("[VideoChatHelper]已销毁RTC音视频通话引擎！");
     }
@@ -202,6 +202,9 @@ public class VideoChatHelper : MonoBehaviour
         RTC_Destroy();
     }
 
+    /// <summary>
+    /// 指定默认相机
+    /// </summary>
     public void SetCameraDevice()
     {
         IVideoDeviceManager mgr = RtcEngine.GetVideoDeviceManager();
@@ -209,6 +212,9 @@ public class VideoChatHelper : MonoBehaviour
         Debug.Log(mgr.EnumerateVideoDevices()[0].deviceName);
     }
 
+    /// <summary>
+    /// 指定默认麦克风
+    /// </summary>
     public void SetAudioDevice()
     {
         IAudioDeviceManager mgr = RtcEngine.GetAudioDeviceManager();
