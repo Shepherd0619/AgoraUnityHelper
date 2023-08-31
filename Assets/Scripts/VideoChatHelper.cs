@@ -10,6 +10,7 @@ using UnityEngine.Networking.Types;
 using Agora_RTC_Plugin.API_Example.Examples.Basic.JoinChannelVideo;
 using Agora_RTC_Plugin.API_Example;
 using UnityEngine.UI;
+using System;
 
 public class VideoChatHelper : MonoBehaviour
 {
@@ -33,6 +34,12 @@ public class VideoChatHelper : MonoBehaviour
 
     public static VideoChatHelper Instance;
 
+    #region Action事件
+    //视频画面创建完毕时回调
+    public Action<uint> OnVideoTextureCreated;
+    public Action<uint> OnVideoTextureDestroyed;
+    #endregion
+
     private void Awake()
     {
         Instance = this;
@@ -47,7 +54,18 @@ public class VideoChatHelper : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+#if (UNITY_2018_3_OR_NEWER && UNITY_ANDROID)
+		if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
+		{                 
+			Permission.RequestUserPermission(Permission.Microphone);
+		}
+#endif
+#if (UNITY_2018_3_OR_NEWER && UNITY_ANDROID)
+		if (!Permission.HasUserAuthorizedPermission(Permission.Camera))
+		{                 
+			Permission.RequestUserPermission(Permission.Camera);
+		}
+#endif
     }
 
     /// <summary>
@@ -211,6 +229,7 @@ internal class UserEventHandler : IRtcEngineEventHandler
             VideoChatTexture txt = go.AddComponent<VideoChatTexture>();
             txt.SetVideoStreamIdentity(connection.localUid, VideoChatHelper.Instance.channelName, VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA_PRIMARY, VIDEO_OBSERVER_FRAME_TYPE.FRAME_TYPE_RGBA);
             VideoChatHelper.Instance.RealtimeVideos.Add(connection.localUid, txt);
+            VideoChatHelper.Instance.OnVideoTextureCreated.Invoke(connection.localUid);
         }
 
         public override void OnRejoinChannelSuccess(RtcConnection connection, int elapsed)
@@ -237,6 +256,7 @@ internal class UserEventHandler : IRtcEngineEventHandler
             VideoChatTexture txt = go.AddComponent<VideoChatTexture>();
             txt.SetVideoStreamIdentity(uid, VideoChatHelper.Instance.channelName, VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA_PRIMARY, VIDEO_OBSERVER_FRAME_TYPE.FRAME_TYPE_RGBA);
             VideoChatHelper.Instance.RealtimeVideos.Add(uid, txt);
+            VideoChatHelper.Instance.OnVideoTextureCreated.Invoke(uid);
         }
 
         public override void OnUserOffline(RtcConnection connection, uint uid, USER_OFFLINE_REASON_TYPE reason)
@@ -246,6 +266,7 @@ internal class UserEventHandler : IRtcEngineEventHandler
             //在这里销毁该用户视频画面
             Destroy(VideoChatHelper.Instance.RealtimeVideos[uid].gameObject);
             VideoChatHelper.Instance.RealtimeVideos.Remove(uid);
+            VideoChatHelper.Instance.OnVideoTextureDestroyed.Invoke(uid);
         }
 
         public override void OnUplinkNetworkInfoUpdated(UplinkNetworkInfo info)

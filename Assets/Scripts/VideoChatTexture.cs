@@ -1,3 +1,6 @@
+// Video Chat Texture
+// 作者：朱梓瑞 (Shepherd0619)
+// 视频频道通话贴图
 using Agora.Rtc;
 using System;
 using System.Collections;
