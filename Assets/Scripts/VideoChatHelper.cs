@@ -207,9 +207,11 @@ public class VideoChatHelper : MonoBehaviour
     /// </summary>
     public void SetCameraDevice()
     {
+#if UNITY_EDITOR || UNITY_STANDALONE
         IVideoDeviceManager mgr = RtcEngine.GetVideoDeviceManager();
         mgr.SetDevice(mgr.EnumerateVideoDevices()[0].deviceId);
         Debug.Log(mgr.EnumerateVideoDevices()[0].deviceName);
+#endif
     }
 
     /// <summary>
@@ -217,9 +219,11 @@ public class VideoChatHelper : MonoBehaviour
     /// </summary>
     public void SetAudioDevice()
     {
+#if UNITY_EDITOR || UNITY_STANDALONE
         IAudioDeviceManager mgr = RtcEngine.GetAudioDeviceManager();
         mgr.SetPlaybackDevice(mgr.EnumeratePlaybackDevices()[0].deviceId);
         Debug.Log(mgr.EnumeratePlaybackDevices()[0].deviceName);
+#endif
     }
 
     #region ÊÂ¼þ
