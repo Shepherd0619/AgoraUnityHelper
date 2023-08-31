@@ -6,7 +6,7 @@ using UnityEngine;
 using Agora.Rtc;
 using UnityEngine.Serialization;
 using System;
-
+using UnityEngine.Android;
 
 public class VideoChatHelper : MonoBehaviour
 {
