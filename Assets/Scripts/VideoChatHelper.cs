@@ -1,18 +1,12 @@
 // Video Chat Helper
 // 作者：朱梓瑞 (Shepherd0619)
 // 主要方便调用视频频道通话
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Agora.Rtc;
 using UnityEngine.Serialization;
-using UnityEngine.Networking.Types;
-using Agora_RTC_Plugin.API_Example.Examples.Basic.JoinChannelVideo;
-using Agora_RTC_Plugin.API_Example;
-using UnityEngine.UI;
 using System;
-using UnityEditor.MemoryProfiler;
-using static UnityEditor.Progress;
+
 
 public class VideoChatHelper : MonoBehaviour
 {

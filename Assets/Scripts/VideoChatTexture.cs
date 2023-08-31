@@ -3,8 +3,6 @@
 // 视频频道通话贴图
 using Agora.Rtc;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
