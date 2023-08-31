@@ -209,20 +209,36 @@ public class VideoChatHelper : MonoBehaviour
     {
 #if UNITY_EDITOR || UNITY_STANDALONE
         IVideoDeviceManager mgr = RtcEngine.GetVideoDeviceManager();
-        mgr.SetDevice(mgr.EnumerateVideoDevices()[0].deviceId);
-        Debug.Log(mgr.EnumerateVideoDevices()[0].deviceName);
+        DeviceInfo[] result = mgr.EnumerateVideoDevices();
+        if (result.Length == 0)
+        {
+            Debug.LogError("[VideoChatHelper]未能检测到设备上的摄像头！");
+        }
+        else
+        {
+            mgr.SetDevice(result[0].deviceId);
+            Debug.Log(mgr.EnumerateVideoDevices()[0].deviceName);
+        }
 #endif
     }
 
     /// <summary>
-    /// 指定默认麦克风
+    /// 指定默认音频设备
     /// </summary>
     public void SetAudioDevice()
     {
 #if UNITY_EDITOR || UNITY_STANDALONE
         IAudioDeviceManager mgr = RtcEngine.GetAudioDeviceManager();
-        mgr.SetPlaybackDevice(mgr.EnumeratePlaybackDevices()[0].deviceId);
-        Debug.Log(mgr.EnumeratePlaybackDevices()[0].deviceName);
+        DeviceInfo[] result = mgr.EnumeratePlaybackDevices();
+        if (result.Length == 0)
+        {
+            Debug.LogError("[VideoChatHelper]未能检测到设备上的音频设备！");
+        }
+        else
+        {
+            mgr.SetPlaybackDevice(result[0].deviceId);
+            Debug.Log(mgr.EnumeratePlaybackDevices()[0].deviceName);
+        }
 #endif
     }
 
