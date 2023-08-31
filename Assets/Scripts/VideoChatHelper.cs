@@ -158,6 +158,7 @@ public class VideoChatHelper : MonoBehaviour
     /// <param name="name">频道名称</param>
     public void RTC_JoinChannel(string name)
     {
+        channelName = name;
         RtcEngine.JoinChannel(token, name);
         //在这里加新的视频画面
         GameObject go = new GameObject("VideoChatTexture_uid_" + 0);
