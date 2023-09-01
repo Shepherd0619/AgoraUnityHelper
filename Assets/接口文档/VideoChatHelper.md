@@ -12,6 +12,7 @@
 - `RealtimeVideos`：字典。保存实时视频的字典。
 - `OnVideoTextureCreated`：Action。当视频画面创建完毕时触发的事件。（本脚本自定义）
 - `OnVideoTextureDestroyed`：Action。当视频画面被销毁时触发的事件。（本脚本自定义）
+- `Options`: ChannelMediaOption。里头包含音视频开关、分辨率、质量等。
 
 
 
@@ -24,6 +25,8 @@
 - `RTC_Destroy()`：销毁引擎。
 - `SetCameraDevice()`：指定默认相机。
 - `SetAudioDevice()`：指定默认音频设备。
+- `SetCameraDevice(DeviceInfo device)`：指定具体相机。
+- `SetAudioDevice(DeviceInfo device)`：指定具体音频设备。
 
 
 
