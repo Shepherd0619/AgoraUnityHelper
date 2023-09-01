@@ -30,6 +30,8 @@ public class VideoChatHelper : MonoBehaviour
 
     public static VideoChatHelper Instance;
 
+    public ChannelMediaOptions Options;
+
     #region Action事件
     //视频画面创建完毕时回调
     public Action<uint> OnVideoTextureCreated;
@@ -64,6 +66,7 @@ public class VideoChatHelper : MonoBehaviour
 #endif
     }
 
+    #region 引擎核心
     /// <summary>
     /// 初始化引擎
     /// </summary>
@@ -136,6 +139,133 @@ public class VideoChatHelper : MonoBehaviour
         Debug.Log("[VideoChatHelper]引擎初始化完成！");
     }
 
+    
+
+    /// <summary>
+    /// 销毁引擎
+    /// </summary>
+    public void RTC_Destroy()
+    {
+        if (RtcEngine == null) return;
+        RtcEngine.LeaveChannel();
+        RtcEngine.InitEventHandler(null);
+        RtcEngine.Dispose();
+        Debug.Log("[VideoChatHelper]已销毁RTC音视频通话引擎！");
+    }
+
+    private void OnDestroy()
+    {
+        RTC_Destroy();
+    }
+    #endregion
+
+    #region 设备设置
+    /// <summary>
+    /// 指定默认相机，请确保系统能正常识别到摄像头
+    /// </summary>
+    public void SetCameraDevice()
+    {
+#if UNITY_EDITOR || UNITY_STANDALONE
+        IVideoDeviceManager mgr = RtcEngine.GetVideoDeviceManager();
+        DeviceInfo[] result = mgr.EnumerateVideoDevices();
+        if (result.Length == 0)
+        {
+            Debug.LogError("[VideoChatHelper]未能检测到设备上的摄像头！");
+        }
+        else
+        {
+            mgr.SetDevice(result[0].deviceId);
+            Debug.Log("[VideoChatHelper]" + "已成功自动设置默认摄像头！" + mgr.EnumerateVideoDevices()[0].deviceName);
+        }
+#endif
+    }
+
+    /// <summary>
+    /// 指定默认音频设备，请确保系统能正常识别麦克风
+    /// </summary>
+    public void SetAudioDevice()
+    {
+#if UNITY_EDITOR || UNITY_STANDALONE
+        IAudioDeviceManager mgr = RtcEngine.GetAudioDeviceManager();
+        DeviceInfo[] result = mgr.EnumeratePlaybackDevices();
+        if (result.Length == 0)
+        {
+            Debug.LogError("[VideoChatHelper]未能检测到设备上的音频设备！");
+        }
+        else
+        {
+            mgr.SetPlaybackDevice(result[0].deviceId);
+            Debug.Log("[VideoChatHelper]" + "已成功自动设置默认音频设备！" + mgr.EnumeratePlaybackDevices()[0].deviceName);
+        }
+#endif
+    }
+
+    /// <summary>
+    /// 手动指定某个为音频设备
+    /// </summary>
+    /// <param name="device">音频设备（不知道哪个？见mgr.EnumeratePlaybackDevices()返回的数组）</param>
+    public void SetAudioDevice(DeviceInfo device)
+    {
+        IAudioDeviceManager mgr = RtcEngine.GetAudioDeviceManager();
+        mgr.SetPlaybackDevice(device.deviceId);
+        Debug.Log("[VideoChatHelper]已手动设置音频设备！"+device.deviceName);
+    }
+
+    /// <summary>
+    /// 手动指定某个为摄像头设备
+    /// </summary>
+    /// <param name="device"></param>
+    public void SetCameraDevice(DeviceInfo device)
+    {
+        IVideoDeviceManager mgr = RtcEngine.GetVideoDeviceManager();
+        mgr.SetDevice(device.deviceName);
+        Debug.Log("[VideoChatHelper]已手动设置摄像头！" + device.deviceName);
+    }
+
+    /// <summary>
+    /// 摄像头、麦克风开关
+    /// </summary>
+    /// <param name="mic">麦克风开关</param>
+    /// <param name="cam">摄像头开关</param>
+    public void PublishSettings(bool mic, bool cam)
+    {
+        Options.publishMicrophoneTrack.SetValue(mic);
+        Options.publishCameraTrack.SetValue(cam);
+        RtcEngine.UpdateChannelMediaOptions(Options);
+        Debug.Log("[VideoChatHelper]麦克风开关更新！" + mic);
+        Debug.Log("[VideoChatHelper]摄像头开关更新！" + cam);
+    }
+
+    public void StartAudioPublish()
+    {
+        Options.publishMicrophoneTrack.SetValue(true);
+        RtcEngine.UpdateChannelMediaOptions(Options);
+        Debug.Log("[VideoChatHelper]麦克风开关更新！" + true);
+    }
+
+    public void StopAudioPublish()
+    {
+        Options.publishMicrophoneTrack.SetValue(false);
+        RtcEngine.UpdateChannelMediaOptions(Options);
+        Debug.Log("[VideoChatHelper]麦克风开关更新！" + false);
+    }
+
+    public void StartCameraPublish()
+    {
+        Options.publishCameraTrack.SetValue(true);
+        RtcEngine.UpdateChannelMediaOptions(Options);
+        Debug.Log("[VideoChatHelper]摄像头开关更新！" + true);
+    }
+
+    public void StopCameraPublish()
+    {
+        Options.publishCameraTrack.SetValue(false);
+        RtcEngine.UpdateChannelMediaOptions(Options);
+        Debug.Log("[VideoChatHelper]摄像头开关更新！" + false);
+    }
+    #endregion
+
+    #region 频道
     /// <summary>
     /// 加入频道
     /// </summary>
@@ -150,6 +280,10 @@ public class VideoChatHelper : MonoBehaviour
         txt.EnableVideoFrameWithIdentity();
         VideoChatHelper.Instance.RealtimeVideos.Add(0, txt);
         VideoChatHelper.Instance.OnVideoTextureCreated.Invoke(0);
+        Options = new ChannelMediaOptions();
+        Options.publishMicrophoneTrack.SetValue(true);
+        Options.publishCameraTrack.SetValue(true);
+        var nRet = RtcEngine.UpdateChannelMediaOptions(Options);
     }
 
     /// <summary>
@@ -168,10 +302,10 @@ public class VideoChatHelper : MonoBehaviour
         txt.EnableVideoFrameWithIdentity();
         VideoChatHelper.Instance.RealtimeVideos.Add(0, txt);
         VideoChatHelper.Instance.OnVideoTextureCreated.Invoke(0);
-        var options = new ChannelMediaOptions();
-        options.publishMicrophoneTrack.SetValue(true);
-        options.publishCameraTrack.SetValue(true);
-        var nRet = RtcEngine.UpdateChannelMediaOptions(options);
+        Options = new ChannelMediaOptions();
+        Options.publishMicrophoneTrack.SetValue(true);
+        Options.publishCameraTrack.SetValue(true);
+        var nRet = RtcEngine.UpdateChannelMediaOptions(Options);
     }
 
     /// <summary>
@@ -179,69 +313,13 @@ public class VideoChatHelper : MonoBehaviour
     /// </summary>
     public void RTC_LeaveChannel()
     {
-        var options = new ChannelMediaOptions();
-        options.publishMicrophoneTrack.SetValue(false);
-        options.publishCameraTrack.SetValue(false);
-        var nRet = RtcEngine.UpdateChannelMediaOptions(options);
+        Options = new ChannelMediaOptions();
+        Options.publishMicrophoneTrack.SetValue(false);
+        Options.publishCameraTrack.SetValue(false);
+        var nRet = RtcEngine.UpdateChannelMediaOptions(Options);
         RtcEngine.LeaveChannel();
     }
-
-    /// <summary>
-    /// 销毁引擎
-    /// </summary>
-    public void RTC_Destroy()
-    {
-        if (RtcEngine == null) return;
-        RtcEngine.LeaveChannel();
-        RtcEngine.InitEventHandler(null);
-        RtcEngine.Dispose();
-        Debug.Log("[VideoChatHelper]已销毁RTC音视频通话引擎！");
-    }
-
-    private void OnDestroy()
-    {
-        RTC_Destroy();
-    }
-
-    /// <summary>
-    /// 指定默认相机
-    /// </summary>
-    public void SetCameraDevice()
-    {
-#if UNITY_EDITOR || UNITY_STANDALONE
-        IVideoDeviceManager mgr = RtcEngine.GetVideoDeviceManager();
-        DeviceInfo[] result = mgr.EnumerateVideoDevices();
-        if (result.Length == 0)
-        {
-            Debug.LogError("[VideoChatHelper]未能检测到设备上的摄像头！");
-        }
-        else
-        {
-            mgr.SetDevice(result[0].deviceId);
-            Debug.Log(mgr.EnumerateVideoDevices()[0].deviceName);
-        }
-#endif
-    }
-
-    /// <summary>
-    /// 指定默认音频设备
-    /// </summary>
-    public void SetAudioDevice()
-    {
-#if UNITY_EDITOR || UNITY_STANDALONE
-        IAudioDeviceManager mgr = RtcEngine.GetAudioDeviceManager();
-        DeviceInfo[] result = mgr.EnumeratePlaybackDevices();
-        if (result.Length == 0)
-        {
-            Debug.LogError("[VideoChatHelper]未能检测到设备上的音频设备！");
-        }
-        else
-        {
-            mgr.SetPlaybackDevice(result[0].deviceId);
-            Debug.Log(mgr.EnumeratePlaybackDevices()[0].deviceName);
-        }
-#endif
-    }
+    #endregion
 
     #region 事件
     internal class UserEventHandler : IRtcEngineEventHandler
