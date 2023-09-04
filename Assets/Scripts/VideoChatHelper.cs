@@ -271,6 +271,14 @@ public class VideoChatHelper : MonoBehaviour
     /// </summary>
     public void RTC_JoinChannel()
     {
+        //在这里销毁用户视频画面
+        foreach (KeyValuePair<uint, VideoChatTexture> pair in VideoChatHelper.Instance.RealtimeVideos)
+        {
+            VideoChatHelper.Instance.OnVideoTextureDestroyed.Invoke(pair.Key);
+            Destroy(pair.Value.gameObject);
+
+        }
+        VideoChatHelper.Instance.RealtimeVideos.Clear();
         RtcEngine.JoinChannel(token, channelName);
         //在这里加新的视频画面
         GameObject go = new GameObject("VideoChatTexture_uid_" + 0);
@@ -284,6 +292,7 @@ public class VideoChatHelper : MonoBehaviour
         Options.publishMicrophoneTrack.SetValue(true);
         Options.publishCameraTrack.SetValue(true);
         var nRet = RtcEngine.UpdateChannelMediaOptions(Options);
+        Debug.Log("[VideoChatHelper]加入频道！" + channelName);
     }
 
     /// <summary>
@@ -292,6 +301,14 @@ public class VideoChatHelper : MonoBehaviour
     /// <param name="name">频道名称</param>
     public void RTC_JoinChannel(string name)
     {
+        //在这里销毁用户视频画面
+        foreach (KeyValuePair<uint, VideoChatTexture> pair in VideoChatHelper.Instance.RealtimeVideos)
+        {
+            VideoChatHelper.Instance.OnVideoTextureDestroyed.Invoke(pair.Key);
+            Destroy(pair.Value.gameObject);
+
+        }
+        VideoChatHelper.Instance.RealtimeVideos.Clear();
         channelName = name;
         RtcEngine.JoinChannel(token, name);
         //在这里加新的视频画面
@@ -306,6 +323,7 @@ public class VideoChatHelper : MonoBehaviour
         Options.publishMicrophoneTrack.SetValue(true);
         Options.publishCameraTrack.SetValue(true);
         var nRet = RtcEngine.UpdateChannelMediaOptions(Options);
+        Debug.Log("[VideoChatHelper]加入频道！" + channelName);
     }
 
     /// <summary>

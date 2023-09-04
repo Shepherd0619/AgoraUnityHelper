@@ -18,6 +18,9 @@ public class VideoChatUI : MonoBehaviour
             RawImage img = go.AddComponent<RawImage>();
             img.uvRect = new Rect(img.uvRect.x, img.uvRect.y, -1f, -1f);
             keyValuePairs.Add(id, img);
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one;
         };
 
         VideoChatHelper.Instance.OnVideoTextureDestroyed = (id) =>
