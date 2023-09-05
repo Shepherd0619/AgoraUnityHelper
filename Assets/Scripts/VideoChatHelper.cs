@@ -129,7 +129,7 @@ public class VideoChatHelper : MonoBehaviour
         RtcEngine.EnableAudio();
         RtcEngine.EnableVideo();
         VideoEncoderConfiguration config = new VideoEncoderConfiguration();
-        config.dimensions = new VideoDimensions(300, 300);
+        config.dimensions = new VideoDimensions(720, 400);
         config.frameRate = 15;
         config.bitrate = 0;
         RtcEngine.SetVideoEncoderConfiguration(config);

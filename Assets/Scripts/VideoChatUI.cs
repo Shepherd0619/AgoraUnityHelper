@@ -2,11 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+using TMPro;
 public class VideoChatUI : MonoBehaviour
 {
     public Transform Content;
     public Dictionary<uint, RawImage> keyValuePairs = new Dictionary<uint, RawImage>();
+    public TMP_InputField AppID;
+    public TMP_InputField Token;
+    public TMP_InputField ChannelName;
 
     // Start is called before the first frame update
     void Start()
@@ -39,5 +42,13 @@ public class VideoChatUI : MonoBehaviour
             pair.Value.SetNativeSize();
             //VideoChatHelper.Instance.RealtimeVideos[pair.Key].Attach();
         }
+    }
+
+    public void UI_Initialize()
+    {
+        VideoChatHelper.Instance.appID = AppID.text;
+        VideoChatHelper.Instance.token = Token.text;
+        VideoChatHelper.Instance.channelName = ChannelName.text;
+        VideoChatHelper.Instance.RTC_Initialize();
     }
 }
